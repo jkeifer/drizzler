@@ -2,7 +2,7 @@
 #include <pcl/point_types.h>
 #include <pcl/io/openni_grabber.h>
 #include <pcl/visualization/cloud_viewer.h>
-
+#include <pcl/io/pcd_io.h>
 #include <pcl/compression/octree_pointcloud_compression.h>
 
 #include <stdio.h>
@@ -25,18 +25,18 @@ class PointCloudCompressor {
         PointCloudCompressor(std::string str, pcl::io::compression_Profiles_e compprof);  // file path and comp profile
         PointCloudCompressor(std::string str, bool stats);  // file path and show statistics
         PointCloudCompressor(std::string str, pcl::io::compression_Profiles_e compprof, bool stats);  // all of the above
-        
+
         //destructor
         ~PointCloudCompressor() {
             fclose(outfilestream);
             delete (PointCloudEncoder);
         };
-        
+
         // member functions
         std::string getFilepath(void);
         void compressDirectory(const std::string directorypath);
-        void compressFrame(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &cloud);
-        
+        void compressFrame(const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr &cloud);
+
     private:
         const bool showStatistics = false;
         // for a full list of profiles see: /io/include/pcl/compression/compression_profiles.h
@@ -49,7 +49,7 @@ class PointCloudCompressor {
 
 
 // CONSTRUCTORS
-// just file path 
+// just file path
 PointCloudCompressor::PointCloudCompressor(std::string str):
     filepath(str)
     {
@@ -99,11 +99,11 @@ std::string PointCloudCompressor::getFilepath(void) {
 void PointCloudCompressor::compressDirectory(const std::string directorypath) {
     struct dirent *dp;
     DIR * dirp = opendir(directorypath.c_str());
-    const pcl::PointCloud<pcl::PointXYZ>Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    const pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBA>);
 
     while ((dp = readdir(dirp)) != NULL) {
         // load the files in a directory
-        if (pcl::io::loadPCDFile<pcl::PointXYZ> (dp->d_name, *cloud) == -1) {
+        if (pcl::io::loadPCDFile<pcl::PointXYZRGBA> (dp->d_name, *cloud) == -1) {
             PCL_ERROR ("Couldn't read file \n");
             continue;
         }
@@ -111,13 +111,13 @@ void PointCloudCompressor::compressDirectory(const std::string directorypath) {
         compressFrame(cloud);
         std::cout << "Compressed frame " << dp->d_name << ".\n";
     }
-    
+
     // what the hell is the next line???? O_o
     (void)closedir(dirp);
 }
 
-        
-void PointCloudCompressor::compressFrame(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &cloud) {
+
+void PointCloudCompressor::compressFrame(const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr &cloud) {
     // stringstream to store compressed point cloud
     std::stringstream compressedData;
     std::string * datastring;
@@ -133,23 +133,23 @@ void PointCloudCompressor::compressFrame(const pcl::PointCloud<pcl::PointXYZ>::C
 
     // convert stringstream to string
     datastring = new string(compressedData.str());
-    
+
     // make frame header (length of frame data in bytes as a binary string)
     header = new int(sizeof(datastring));
-    
+
     // add newly compressed data to output file with header first
     fwrite(header, sizeof(int), sizeof(header), outfilestream);
     fwrite(datastring, sizeof(char), sizeof(datastring), outfilestream);
-    
+
     delete datastring;
     delete header;
 }
-        
+
 
 int main(int argc, char **argv) {
     int compression;
     std::string directory, filepath;
-    
+
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()
@@ -163,16 +163,16 @@ int main(int argc, char **argv) {
 
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-    po::notify(vm);  
+    po::notify(vm);
 
     if (vm.count("help") || !vm.count("directory") || !vm.count("filepath")) {
         cout << desc << "\n";
         return 1;
     }
-    
+
     PointCloudCompressor pccomp(filepath, static_cast<pcl::io::compression_Profiles_e>(compression));
     pccomp.compressDirectory(directory);
-    
-    
-    return 0;    
+
+
+    return 0;
 }
