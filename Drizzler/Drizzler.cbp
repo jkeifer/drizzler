@@ -13,6 +13,11 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add directory="../../pcl/common/include" />
+					<Add directory="/usr/include/eigen3" />
+					<Add directory="/usr/include/pcl-1.7" />
+					<Add directory="/usr/include/ni" />
+					<Add directory="/usr/include/vtk-5.8" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -32,6 +37,7 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="../pclCompressor.cpp" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
