@@ -3,6 +3,7 @@
 #include <pcl/io/openni_grabber.h>
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
 #include <pcl/compression/octree_pointcloud_compression.h>
 
 #include <stdio.h>
@@ -103,7 +104,9 @@ void PointCloudCompressor::compressDirectory(const std::string directorypath) {
 
     while ((dp = readdir(dirp)) != NULL) {
         // load the files in a directory
-        if (pcl::io::loadPCDFile<pcl::PointXYZRGBA> (dp->d_name, *cloud) == -1) {
+        pcl::PLYReader reader;
+        //if (pcl::io::loadPCDFile<pcl::PointXYZRGBA> (dp->d_name, *cloud) == -1) {
+        if (reader.read<pcl::PointXYZRGBA>(dp->d_name, *cloud)) {
             PCL_ERROR ("Couldn't read file \n");
             continue;
         }
