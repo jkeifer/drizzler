@@ -41,7 +41,7 @@ class PointCloudCompressor {
         const bool showStatistics = false;
         // for a full list of profiles see: /io/include/pcl/compression/compression_profiles.h
         const pcl::io::compression_Profiles_e compressionProfile = pcl::io::MED_RES_ONLINE_COMPRESSION_WITH_COLOR;
-        const pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA> * PointCloudEncoder;
+        pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA> * PointCloudEncoder;
         int framecount = 0;
         const std::string filepath;
         FILE * outfilestream;
