@@ -124,8 +124,8 @@ void PointCloudCompressor::compressFrame(const pcl::PointCloud<pcl::PointXYZRGBA
     int * header;
 
     // compress point cloud
+    PointCloudEncoder->encodePointCloud(cloud, compressedData);
 
-    PointCloudEncoder->encodePointCloud (cloud, compressedData);
     // output pointcloud
     //pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudOut (new pcl::PointCloud<pcl::PointXYZRGBA> ());
     // decompress point cloud

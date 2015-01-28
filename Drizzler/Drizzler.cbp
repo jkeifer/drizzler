@@ -18,7 +18,34 @@
 					<Add directory="/usr/include/pcl-1.7" />
 					<Add directory="/usr/include/ni" />
 					<Add directory="/usr/include/vtk-5.8" />
+					<Add directory="/usr/include/" />
+					<Add directory="/usr/lib" />
 				</Compiler>
+				<Linker>
+					<Add option="-lboost_system" />
+					<Add option="-lboost_program_options" />
+					<Add library="/usr/lib/libpcl_apps.so" />
+					<Add library="/usr/lib/libpcl_common.so" />
+					<Add library="/usr/lib/libpcl_features.so" />
+					<Add library="/usr/lib/libpcl_filters.so" />
+					<Add library="/usr/lib/libpcl_io.so" />
+					<Add library="/usr/lib/libpcl_io_ply.so" />
+					<Add library="/usr/lib/libpcl_kdtree.so" />
+					<Add library="/usr/lib/libpcl_keypoints.so" />
+					<Add library="/usr/lib/libpcl_octree.so" />
+					<Add library="/usr/lib/libpcl_outofcore.so" />
+					<Add library="/usr/lib/libpcl_people.so" />
+					<Add library="/usr/lib/libpcl_recognition.so" />
+					<Add library="/usr/lib/libpcl_registration.so" />
+					<Add library="/usr/lib/libpcl_sample_consensus.so" />
+					<Add library="/usr/lib/libpcl_search.so" />
+					<Add library="/usr/lib/libpcl_segmentation.so" />
+					<Add library="/usr/lib/libpcl_surface.so" />
+					<Add library="/usr/lib/libpcl_tracking.so" />
+					<Add library="/usr/lib/libpcl_visualization.so" />
+					<Add library="/usr/lib/libOpenNI.so" />
+					<Add directory="/usr/lib" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/Drizzler" prefix_auto="1" extension_auto="1" />
@@ -27,9 +54,38 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add directory="../../pcl/common/include" />
+					<Add directory="/usr/include/eigen3" />
+					<Add directory="/usr/include/pcl-1.7" />
+					<Add directory="/usr/include/ni" />
+					<Add directory="/usr/include/vtk-5.8" />
+					<Add directory="/usr/include/" />
+					<Add directory="/usr/lib" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-lboost_system" />
+					<Add option="-lboost_program_options" />
+					<Add library="/usr/lib/libpcl_apps.so" />
+					<Add library="/usr/lib/libpcl_common.so" />
+					<Add library="/usr/lib/libpcl_features.so" />
+					<Add library="/usr/lib/libpcl_filters.so" />
+					<Add library="/usr/lib/libpcl_io.so" />
+					<Add library="/usr/lib/libpcl_io_ply.so" />
+					<Add library="/usr/lib/libpcl_kdtree.so" />
+					<Add library="/usr/lib/libpcl_keypoints.so" />
+					<Add library="/usr/lib/libpcl_octree.so" />
+					<Add library="/usr/lib/libpcl_outofcore.so" />
+					<Add library="/usr/lib/libpcl_people.so" />
+					<Add library="/usr/lib/libpcl_recognition.so" />
+					<Add library="/usr/lib/libpcl_registration.so" />
+					<Add library="/usr/lib/libpcl_sample_consensus.so" />
+					<Add library="/usr/lib/libpcl_search.so" />
+					<Add library="/usr/lib/libpcl_segmentation.so" />
+					<Add library="/usr/lib/libpcl_surface.so" />
+					<Add library="/usr/lib/libpcl_tracking.so" />
+					<Add library="/usr/lib/libpcl_visualization.so" />
+					<Add library="/usr/lib/libOpenNI.so" />
 				</Linker>
 			</Target>
 		</Build>
@@ -38,7 +94,6 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="../pclCompressor.cpp" />
-		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />
