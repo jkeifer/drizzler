@@ -12,24 +12,23 @@
 #include <string>
 #include <bitset>
 #include <dirent.h>
+#include <fstream>
 
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
-
-class PointCloudCompressor {
+/*
+// DECOMPRESSOR
+class PointCloudDeompressor {
     public:
-        // constructors
-        PointCloudCompressor(std::string str);  // just a file path
-        PointCloudCompressor(std::string str, pcl::io::compression_Profiles_e compprof);  // file path and comp profile
-        PointCloudCompressor(std::string str, bool stats);  // file path and show statistics
-        PointCloudCompressor(std::string str, pcl::io::compression_Profiles_e compprof, bool stats);  // all of the above
+        // constructor
+        PointCloudDecompressor(std::string drz_file);
 
         //destructor
-        ~PointCloudCompressor() {
-            fclose(outfilestream);
-            delete (PointCloudEncoder);
+        ~PointCloudDecompressor() {
+            infilestream.close();
+            delete (PointCloudDecoder);
         };
 
         // member functions
@@ -38,54 +37,20 @@ class PointCloudCompressor {
         void compressFrame(const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr &cloud);
 
     private:
-        const bool showStatistics = false;
-        // for a full list of profiles see: /io/include/pcl/compression/compression_profiles.h
-        const pcl::io::compression_Profiles_e compressionProfile = pcl::io::MED_RES_ONLINE_COMPRESSION_WITH_COLOR;
+        const pcl::io::compression_Profiles_e compressionProfile;
         pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA> * PointCloudEncoder;
-        int framecount = 0;
         const std::string filepath;
-        FILE * outfilestream;
+        std::ofstream outfilestream;
 };
 
 
-// CONSTRUCTORS
-// just file path
-PointCloudCompressor::PointCloudCompressor(std::string str):
-    filepath(str)
-    {
-    outfilestream = fopen(filepath.c_str(), "a+b");
-    PointCloudEncoder = new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA> (compressionProfile, showStatistics);
-}
-
-
-// file path and comp profile
-PointCloudCompressor::PointCloudCompressor(std::string str, pcl::io::compression_Profiles_e compprof):
-    filepath(str),
-    compressionProfile(compprof)
-    {
-    outfilestream = fopen(filepath.c_str(), "a+b");
-    PointCloudEncoder = new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA> (compressionProfile, showStatistics);
-}
-
-
-// file path and stats
-PointCloudCompressor::PointCloudCompressor(std::string str, bool stats):
-    filepath(str),
-    showStatistics(stats)
-    {
-    outfilestream = fopen(filepath.c_str(), "a+b");
-    PointCloudEncoder = new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA> (compressionProfile, showStatistics);
-}
-
-
-// all args
+// CONSTRUCTOR
 PointCloudCompressor::PointCloudCompressor(std::string str, pcl::io::compression_Profiles_e compprof, bool stats):
     filepath(str),
-    compressionProfile(compprof),
-    showStatistics(stats)
     {
-    outfilestream = fopen(filepath.c_str(), "a+b");
-    PointCloudEncoder = new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA> (compressionProfile, showStatistics);
+    //outfilestream = fopen(filepath.c_str(), "a+b");
+    outfilestream.open(filepath.c_str(), std::ofstream::binary);
+    PointCloudEncoder = new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA>(compressionProfile, showStatistics);
 }
 
 
@@ -98,12 +63,24 @@ std::string PointCloudCompressor::getFilepath(void) {
 // METHODS
 void PointCloudCompressor::compressDirectory(const std::string directorypath) {
     struct dirent *dp;
+
+    if (chdir(directorypath.c_str()) == -1) {
+         std::cout << "Cannot chdir into " << directorypath << std::endl;
+         return;
+    }
+
     DIR * dirp = opendir(directorypath.c_str());
+    std::cout << "Compressing PCD files in " << directorypath << std::endl;
     const pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBA>);
 
     while ((dp = readdir(dirp)) != NULL) {
         // load the files in a directory
-        if (pcl::io::loadPCDFile<pcl::PointXYZRGBA> (dp->d_name, *cloud) == -1) {
+        std::cout << dp->d_name << std::endl;
+        if (strcmp(dp->d_name, ".") == 0)
+            continue;
+        else if (strcmp(dp->d_name, "..") == 0)
+            continue;
+        else if (pcl::io::loadPCDFile<pcl::PointXYZRGBA> (dp->d_name, *cloud) == -1) {
             PCL_ERROR ("Couldn't read file \n");
             continue;
         }
@@ -112,37 +89,99 @@ void PointCloudCompressor::compressDirectory(const std::string directorypath) {
         std::cout << "Compressed frame " << dp->d_name << ".\n";
     }
 
-    // what the hell is the next line???? O_o
     (void)closedir(dirp);
 }
 
 
 void PointCloudCompressor::compressFrame(const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr &cloud) {
-    // stringstream to store compressed point cloud
-    std::stringstream compressedData;
-    std::string * datastring;
-    int * header;
+    PointCloudEncoder->encodePointCloud(cloud, outfilestream);
+}
+*/
 
-    // compress point cloud
-    PointCloudEncoder->encodePointCloud(cloud, compressedData);
 
-    // output pointcloud
-    //pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudOut (new pcl::PointCloud<pcl::PointXYZRGBA> ());
-    // decompress point cloud
-    //PointCloudDecoder->decodePointCloud (compressedData, cloudOut);
+// COMPRESSOR
+class PointCloudCompressor {
+    public:
+        // constructor
+        PointCloudCompressor(std::string str, pcl::io::compression_Profiles_e compprof, bool stats);  // all of the above
 
-    // convert stringstream to string
-    datastring = new string(compressedData.str());
+        //destructor
+        ~PointCloudCompressor() {
+            outfilestream.close();
+            delete (PointCloudEncoder);
+        };
 
-    // make frame header (length of frame data in bytes as a binary string)
-    header = new int(sizeof(datastring));
+        // member functions
+        std::string getFilepath(void);
+        void compressDirectory(const std::string directorypath);
+        void compressFrame(const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr &cloud);
 
-    // add newly compressed data to output file with header first
-    fwrite(header, sizeof(int), sizeof(header), outfilestream);
-    fwrite(datastring, sizeof(char), sizeof(datastring), outfilestream);
+    private:
+        pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA> * PointCloudEncoder;
+        const std::string filepath;
+        std::ofstream outfilestream;
+};
 
-    delete datastring;
-    delete header;
+
+// CONSTRUCTOR
+PointCloudCompressor::PointCloudCompressor(std::string str, pcl::io::compression_Profiles_e compprof, bool stats):
+    filepath(str)
+    {
+    //outfilestream = fopen(filepath.c_str(), "a+b");
+    outfilestream.open(filepath.c_str(), std::ofstream::binary);
+    PointCloudEncoder = new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGBA>(compprof, stats);
+}
+
+
+// ACCESSOR METHODS
+std::string PointCloudCompressor::getFilepath(void) {
+    return filepath;
+}
+
+
+// METHODS
+void PointCloudCompressor::compressDirectory(const std::string directorypath) {
+    struct dirent *dp;
+
+    if (chdir(directorypath.c_str()) == -1) {
+         std::cout << "Cannot chdir into " << directorypath << std::endl;
+         return;
+    }
+
+    DIR * dirp = opendir(directorypath.c_str());
+    std::cout << "Compressing PCD files in " << directorypath << std::endl;
+    const pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+    while ((dp = readdir(dirp)) != NULL) {
+        // load the files in a directory
+        std::cout << dp->d_name << std::endl;
+        if (strcmp(dp->d_name, ".") == 0)
+            continue;
+        else if (strcmp(dp->d_name, "..") == 0)
+            continue;
+        else if (pcl::io::loadPCDFile<pcl::PointXYZRGBA> (dp->d_name, *cloud) == -1) {
+            PCL_ERROR ("Couldn't read file \n");
+            continue;
+        }
+        // cloud loaded; compress to output
+        compressFrame(cloud);
+        std::cout << "Compressed frame " << dp->d_name << ".\n";
+    }
+
+    (void)closedir(dirp);
+}
+
+
+void PointCloudCompressor::compressFrame(const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr &cloud) {
+    std::stringstream tempstream;
+    long unsigned int streamsize;
+
+    PointCloudEncoder->encodePointCloud(cloud, tempstream);
+
+    streamsize = static_cast<long unsigned int>(tempstream.tellp());
+    std::cout << streamsize << ", " << tempstream.tellp() << std::endl;
+    outfilestream.write(reinterpret_cast<const char *>(&streamsize), sizeof(streamsize));
+    outfilestream << tempstream.rdbuf();
 }
 
 
@@ -170,7 +209,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    PointCloudCompressor pccomp(filepath, static_cast<pcl::io::compression_Profiles_e>(compression));
+    PointCloudCompressor pccomp(filepath, static_cast<pcl::io::compression_Profiles_e>(compression), true);
     pccomp.compressDirectory(directory);
 
 
